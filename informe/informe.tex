@@ -1,0 +1,48 @@
+\documentclass[a4paper,11pt,twoside,pdftex,titlepage,spanish]{article}
+
+\usepackage{a4wide}
+\usepackage{times}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{wrapfig}
+\usepackage{anysize}
+\usepackage[pdftex]{graphicx}
+%\usepackage[english]{babel}
+\usepackage[spanish]{babel}
+
+\setlength{\parindent}{0pt}
+
+\clubpenalty=100000
+\widowpenalty=100000
+
+\marginsize{2cm}{2cm}{1cm}{1cm}
+
+\newcommand{\command}[1]{\texttt{#1}}
+\newcommand{\fspath}[1]{\texttt{#1}}
+\renewcommand{\baselinestretch}{1.5}
+
+\title{Informe de PCA}
+\author{Albert Sellar\`{e}s Torra\\Lluc \'{A}lvarez Mart\'{i}}
+\date{}
+
+\begin{document}
+
+\maketitle
+\pagestyle{empty}
+\tableofcontents
+\clearpage
+\pagestyle{plain}
+
+\pagenumbering{arabic}
+\setlength{\parskip}{.6\baselineskip plus .2\baselineskip minus .1\baselineskip}
+
+\input{introduccion}
+\clearpage
+\input{optimizaciones}
+\clearpage
+\input{conclusiones}
+\clearpage
+
+\end{document}
+
+% vim: filetype=tex tw=75
