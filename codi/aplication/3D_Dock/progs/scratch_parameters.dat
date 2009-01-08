@@ -1,0 +1,19 @@
+
+Global Scan
+
+Command line controllable values
+Static molecule                    :: 2pka.parsed
+Mobile molecule                    :: 5pti.parsed
+Output file name                   :: ftdock_global.dat
+
+Global grid size                   ::    134      (default calculated)
+Global search angle step           ::     12      (default)
+Global surface thickness           ::      1.30   (default)
+Global internal deterrent value    ::    -15.00   (default)
+Electrostatics                     ::     on      (default)
+Global keep per rotation           ::      3      (default)
+
+Calculated values
+Global rotations                   ::   9240
+Global total span (angstroms)      ::     93.436
+Global grid cell span (angstroms)  ::      0.697
