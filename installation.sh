@@ -10,6 +10,7 @@ export PATH_APLI=/tmp/pca
 cp codi/TGZs/fftw-2.1.3.tar.gz $PATH_LLIB
 cp codi/TGZs/gnu_licensed_3D_Dock.tar.gz $PATH_APLI
 cp codi/TGZs/proteins.tar.gz $PATH_APLI
+cp codi/TGZs/ftdock_outputstests.tar.gz $PATH_APLI
 
 cd $PATH_LLIB
 tar -xvzf fftw-2.1.3.tar.gz
@@ -23,11 +24,17 @@ cd $PATH_APLI
 tar -xvzf gnu_licensed_3D_Dock.tar.gz
 cd $PATH_APLI/3D_Dock/progs/
 tar -zxvf $PATH_APLI/proteins.tar.gz
+tar -zxvf $PATH_APLI/ftdock_outputstests.tar.gz
+mkdir output
+mv test1.output output/test1.original
+mv test2.output output/test2.original
+mv test3.output output/test3.original
+
 echo
 echo
 echo "*****************************************************************"
 echo "* Change the FFTW_DIR variable value in the Makefile with that: *"
-echo "* FFTW_DIR = $(PATH_LLIB)/fftw-2.1.3/installation               *"
+echo "* FFTW_DIR = \$(PATH_LLIB)/fftw-2.1.3/installation               *"
 echo "*                                                               *"
 echo "* After doing so, just optimize the code and compile using make *"
 echo "*****************************************************************"
