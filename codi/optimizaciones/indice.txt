@@ -1,0 +1,2 @@
+Optimitzacion 1: Evitar llamadas a gaddress i evitar saltos en los bucles.
+
