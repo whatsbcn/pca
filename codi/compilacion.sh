@@ -19,7 +19,9 @@ else
       cd $PATH_APLI/3D_Dock/progs/
       tar -zxvf $BASE_DIR/TGZs/proteins.tar.gz
       tar -zxvf $BASE_DIR/TGZs/ftdock_outputstests.tar.gz
-      make
+      rm -rf test?.original
+      make clean all
+      cd $BASE_DIR
    else
       if `test -d optimizaciones/$1`; then
          cd optimizaciones/$1
