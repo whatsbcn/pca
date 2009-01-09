@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo INSTALLATION SCRIPT
+echo SCRIPT DE INSTALACION
 
 export BASE_DIR=$PWD
 export PATH_LLIB=$BASE_DIR
