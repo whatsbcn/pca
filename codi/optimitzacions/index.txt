@@ -1,0 +1,3 @@
+Optimitzacio 1: Evitar crides a gaddress i evitar bots als bucles.
+
+
