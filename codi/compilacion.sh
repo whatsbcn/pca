@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo
-echo SCRIPT DE INSTALACION
+echo SCRIPT DE COMPILACION
 echo
 
 if [ $# -eq 0 ]; then

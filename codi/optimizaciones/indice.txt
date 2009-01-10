@@ -1,2 +1,3 @@
-Optimitzacion 1: Evitar llamadas a gaddress i evitar saltos en los bucles.
-
+Optimizacion 1: Evitar llamadas a gaddress.
+Optimizacion 2: Evitar saltos en los bucles y condicionales.
+Optimizacion 3: Evitar operaciones de coma flotante.
