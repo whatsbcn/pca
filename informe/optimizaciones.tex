@@ -9,25 +9,25 @@ proceso iterativo que incluye los siguientes pasos en cada iteraci\'{o}n:
 \item Comprobar que la optimizaci\'{o}n mejora el rendimiento del programa
 \end{itemize}
 
-Utilizando la herramienta \verbatim{gprof} se han identificado las partes del
+Utilizando la herramienta \texttt{gprof} se han identificado las partes del
 c\'{o}digo original que consumen la mayor\'{i}a del tiempo de ejecuci\'{o}n.
 La salida proporcionada por dicha herramienta es la siguiente:
 
 
 En consecuencia, el objetivo de la primera optimizaci\'{o}n es la funci\'{o}n
-\verbatim{electric\_field}.
+\texttt{electric\_field}.
 
 \subsection{Opt1: Evitar llamadas a gaddress}
 
-La funci\'{o}n \verbatim{gaddress} se encarga de calcular un indice de un
+La funci\'{o}n \texttt{gaddress} se encarga de calcular un indice de un
 vector a partir de los cuatro par\'{a}metros que recibe. En el c\'{o}digo de
-\verbatim{electric\_field} se llama a la funci\'{o}n \verbatim{gaddress} en
+\texttt{electric\_field} se llama a la funci\'{o}n \texttt{gaddress} en
 muchas ocasiones de forma innecesaria. La llamada es innecesaria porque la
-secuencia de valores de retorno que generan las llamadas a \verbatim{gaddress}
+secuencia de valores de retorno que generan las llamadas a \texttt{gaddress}
 en el c\'{o}digo original es 0, 1, 2, ..., grid\_size-1, grid\_size+2,
 grid\_size+3, etc. El c\'{o}digo original es el siguiente:
 
-\begin{verbatim}
+\begin{lstlisting}[]
 for( x = 0 ; x < grid_size ; x ++ ) {
   for( y = 0 ; y < grid_size ; y ++ ) {
     for( z = 0 ; z < grid_size ; z ++ ) {
@@ -35,15 +35,15 @@ for( x = 0 ; x < grid_size ; x ++ ) {
     }
   }
 }
-\end{verbatim}
+\end{lstlisting}
 
 La optimizaci\'{o}n propuesta consiste en cambiar la llamada a
-\verbatim{gaddress} por un simple contador que se incrementa en uno en cada
-iteraci\'{o}n sobre \verbatim{z} y en dos en cada iteraci\'{o}n sobre
-\verbatim{y}, generando as\'{i} los \'{i}ndices correctamente. El c\'{o}digo
+\texttt{gaddress} por un simple contador que se incrementa en uno en cada
+iteraci\'{o}n sobre \texttt{z} y en dos en cada iteraci\'{o}n sobre
+\texttt{y}, generando as\'{i} los \'{i}ndices correctamente. El c\'{o}digo
 resultante es el siguiente:
 
-\begin{verbatim}
+\begin{lstlisting}[]
 i = 0;
 for( x = 0 ; x < grid_size ; x ++ ) {
   for( y = 0 ; y < grid_size ; y ++ ) {
@@ -54,11 +54,11 @@ for( x = 0 ; x < grid_size ; x ++ ) {
     i += 2;
   }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Esta optimizaci\'{o}n se puede aplicar de la misma forma en otros puntos, como
-en \verbatim{electric\_field\_zero\_core} o en el primer bucle de
-\verbatim{electric\_point\_charge}.
+en \texttt{electric\_field\_zero\_core} o en el primer bucle de
+\texttt{electric\_point\_charge}.
 
 \subsection{Opt2: Evitar saltos}
 
@@ -99,11 +99,15 @@ Como poner una tabla:
 \end{center}
 
 Como poner c\'{o}digo:
-\begin{verbatim}
-POS1 = vector[hash_function_1(value)];
-POS2 = vector[hash_function_2(value)];
-if (POS1 == 0 || POS2 == 0) return FALSE;
-return TRUE;
-\end{verbatim}
+
+\begin{lstlisting}[]
+for( x = 0 ; x < grid_size ; x ++ ) {
+  for( y = 0 ; y < grid_size ; y ++ ) {
+    for( z = 0 ; z < grid_size ; z ++ ) {
+      grid[gaddress(x,y,z,grid_size)] = ...
+    }
+  }
+}
+\end{lstlisting}
 
 % vim: filetype=tex tw=75
