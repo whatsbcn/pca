@@ -136,18 +136,20 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
         for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
           for( atom = 1 ; atom <= This_Structure.Residue[residue].size ; atom ++ ) {
 
-            distance = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
+            if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
+              distance = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
          
-            if( distance < 2.0 ) distance = 2.0 ;
+              if( distance < 2.0 ) distance = 2.0 ;
 
-            if (distance >= 8.0)
-              coefficient = distance * 80.0;
-            else if (distance <= 6.0)
-              coefficient = distance * 4.0;
-            else
-              coefficient = (38 * distance - 224) * distance;
+              if (distance >= 8.0)
+                coefficient = distance * 80.0;
+              else if (distance <= 6.0)
+                coefficient = distance * 4.0;
+              else
+                coefficient = (38 * distance - 224) * distance;
 
-            phi += ( This_Structure.Residue[residue].Atom[atom].charge / coefficient ) ;
+              phi += ( This_Structure.Residue[residue].Atom[atom].charge / coefficient ) ;
+            }
           }
         }
 
