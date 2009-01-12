@@ -97,6 +97,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   float		distance ;
   float		phi , epsilon , coefficient ;
 
+  char print_buffer[grid_size];
+
 /************/
 
   i = 0;
@@ -117,7 +119,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   i = 0;
   for( x = 0 ; x < grid_size ; x ++ ) {
 
-    printf( "." ) ;
+    print_buffer[x] = '.';
 
     x_centre  = gcentre( x , grid_span , grid_size ) ;
 
@@ -140,13 +142,13 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
               if( distance < 2.0 ) distance = 2.0 ;
 
               if (distance >= 8.0)
-                coefficient = distance * 80.0;
+                epsilon = 80;
               else if (distance <= 6.0)
-                coefficient = distance * 4.0;
+                epsilon = 4;
               else
-                coefficient = (38 * distance - 224) * distance;
+                epsilon = 38 * distance - 224;
 
-              phi += ( This_Structure.Residue[residue].Atom[atom].charge / coefficient ) ;
+              phi += ( This_Structure.Residue[residue].Atom[atom].charge / ( epsilon * distance ) ) ;
             }
           }
         }
@@ -158,7 +160,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
     }
   }
 
-  printf( "\n" ) ;
+  printf("%s\n",print_buffer) ;
 
 /************/
 
