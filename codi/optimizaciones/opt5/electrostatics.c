@@ -140,7 +140,6 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   for( x = 0 ; x < grid_size ; x ++ ) {
 
     print_buffer[x] = '.';
-//    printf(".");
 
     x_centre  = gcentre( x , grid_span , grid_size ) ;
 
@@ -233,7 +232,6 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   }
 
   printf("%s\n",print_buffer);
-//  printf("\n");
 
 /************/
 

@@ -26,6 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include <emmintrin.h>
+#include <pmmintrin.h>
 #include "xmmintrin.h"
 #include "structures.h"
 
@@ -98,7 +100,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   float		distance[4];
   float		phi[4] __attribute__((aligned(16))) , epsilon[4] , coefficient[4] __attribute__((aligned(16)));
 
-  __m128 	phiVect , coefficientVect , atomVect;
+  __m128 	phiVect , coefficientVect , atomVect , centreVect , v1 , v2 , v3 , v4;
 
   char print_buffer[grid_size];
 
@@ -154,6 +156,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         z_centre  = gcentre( z , grid_span , grid_size ) ;
 
+	centreVect = _mm_set_ps(x_centre, y_centre, z_centre, 0);
+
         phiVect = _mm_set1_ps(0.0);
 
         indexCoord = 0;
@@ -161,11 +165,38 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         for( atom = 0 ; atom <= num_unrolled_iters ; atom += 4 ) {
 
-          distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
-          distance[1] = pythagoras( coord[indexCoord+3], coord[indexCoord+4], coord[indexCoord+5] , x_centre , y_centre , z_centre ) ;
-          distance[2] = pythagoras( coord[indexCoord+6], coord[indexCoord+7], coord[indexCoord+8] , x_centre , y_centre , z_centre ) ;
-          distance[3] = pythagoras( coord[indexCoord+9], coord[indexCoord+10], coord[indexCoord+11] , x_centre , y_centre , z_centre ) ;
- 
+          v1 = _mm_set_ps(coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2], 0);
+          v1 = _mm_sub_ps(v1, centreVect);
+          v1 = _mm_mul_ps(v1, v1);
+          v1 = _mm_hadd_ps(v1, v1);
+          v1 = _mm_hadd_ps(v1, v1);
+          v1 = _mm_sqrt_ss(v1);
+          _mm_store_ss(&(distance[0]), v1);
+
+          v2 = _mm_set_ps(coord[indexCoord+3], coord[indexCoord+4], coord[indexCoord+5], 0);
+          v2 = _mm_sub_ps(v2, centreVect);
+          v2 = _mm_mul_ps(v2, v2);
+          v2 = _mm_hadd_ps(v2, v2);
+          v2 = _mm_hadd_ps(v2, v2);
+          v2 = _mm_sqrt_ss(v2);
+          _mm_store_ss(&(distance[1]), v2);
+
+          v3 = _mm_set_ps(coord[indexCoord+6], coord[indexCoord+7], coord[indexCoord+8], 0);
+          v3 = _mm_sub_ps(v3, centreVect);
+          v3 = _mm_mul_ps(v3, v3);
+          v3 = _mm_hadd_ps(v3, v3);
+          v3 = _mm_hadd_ps(v3, v3);
+          v3 = _mm_sqrt_ss(v3);
+          _mm_store_ss(&(distance[2]), v3);
+
+          v4 = _mm_set_ps(coord[indexCoord+9], coord[indexCoord+10], coord[indexCoord+11], 0);
+          v4 = _mm_sub_ps(v4, centreVect);
+          v4 = _mm_mul_ps(v4, v4);
+          v4 = _mm_hadd_ps(v4, v4);
+          v4 = _mm_hadd_ps(v4, v4);
+          v4 = _mm_sqrt_ss(v4);
+          _mm_store_ss(&(distance[3]), v4);
+
           indexCoord += 12;
 
           atomVect = _mm_load_ps(&(charge[atom]));
@@ -214,7 +245,13 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         for( atom ; atom <= indexCharge ; atom ++ ) {
 
-          distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
+          v1 = _mm_set_ps(coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2], 0);
+          v1 = _mm_sub_ps(v1, centreVect);
+          v1 = _mm_mul_ps(v1, v1);
+          v1 = _mm_hadd_ps(v1, v1);
+          v1 = _mm_hadd_ps(v1, v1);
+          v1 = _mm_sqrt_ss(v1);
+          _mm_store_ss(&(distance[0]), v1);
 
           indexCoord += 3;
 

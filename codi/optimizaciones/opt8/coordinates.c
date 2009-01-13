@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include <emmintrin.h>
+#include <pmmintrin.h>
 #include "structures.h"
 
 /************/
@@ -48,18 +49,17 @@ int gord( float position , float grid_span , int grid_size ) {
 
 float pythagoras( float x1 , float y1 , float z1 , float x2 , float y2 , float z2 ) {
 
-	float vector[4];
+	float result;
 
-	//load a registre vectorial	
 	__m128 v1 = _mm_set_ps(x1, y1, z1, 0);
 	__m128 v2 = _mm_set_ps(x2, y2, z2, 0);
 
-	//operacions
 	v1 = _mm_sub_ps(v1, v2);
 	v1 = _mm_mul_ps(v1, v1);
+	v1 = _mm_hadd_ps(v1, v1);
+	v1 = _mm_hadd_ps(v1, v1);
+	v1 = _mm_sqrt_ss(v1);	
 
-	//store de registre vectorial
-	_mm_storeu_ps(vector, v1);
-
-	return sqrt(vector[1]+vector[2]+vector[3]);
+	_mm_store_ss(&result, v1);
+	return result;	
 }
