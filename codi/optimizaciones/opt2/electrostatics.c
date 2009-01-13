@@ -89,7 +89,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
   /* Co-ordinates */
 
-  int	x , y , z , i , j;
+  int	x , y , z ;
   float		x_centre , y_centre , z_centre ;
 
   /* Variables */
@@ -97,16 +97,38 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   float		distance ;
   float		phi , epsilon ;
 
+  int i , j;
+  
+  float charge[4400];
+  float coord[4400*3];
+
 /************/
 
-  i = 0;
-  j = 0;
-  while( j < grid_size*grid_size*grid_size) {
-    for( i = j ; i < j+grid_size ; i ++ ) {
-      grid[i] = (fftw_real)0;
+  for( x = 0 ; x < grid_size ; x ++ ) {
+    for( y = 0 ; y < grid_size ; y ++ ) {
+      for( z = 0 ; z < grid_size ; z ++ ) {
+
+        grid[gaddress(x,y,z,grid_size)] = (fftw_real)0 ;
+
+      }
     }
-    j += grid_size + 2;
   }
+
+  j = 0;
+  i = 0;
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+    for( atom = 1 ; atom <= This_Structure.Residue[residue].size ; atom ++ ) {
+      if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
+        charge[i] = This_Structure.Residue[residue].Atom[atom].charge;
+        coord[j] = This_Structure.Residue[residue].Atom[atom].coord[1];
+        coord[j+1] = This_Structure.Residue[residue].Atom[atom].coord[2];
+        coord[j+2] = This_Structure.Residue[residue].Atom[atom].coord[3];
+        i++;
+        j+=3;
+      }
+    }
+  }
+
 
 /************/
 
@@ -114,7 +136,6 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
   printf( "  electric field calculations ( one dot / grid sheet ) " ) ;
 
-  i = 0;
   for( x = 0 ; x < grid_size ; x ++ ) {
 
     printf( "." ) ;
@@ -131,30 +152,44 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         phi = 0 ;
 
-        for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
-          for( atom = 1 ; atom <= This_Structure.Residue[residue].size ; atom ++ ) {
+        j = 0;
+        for( atom = 0 ; atom < i ; atom ++ ) {
 
-            if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
-              distance = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
+          distance = pythagoras( coord[j], coord[j+1], coord[j+2] , x_centre , y_centre , z_centre ) ;
+
+          j += 3;
          
-              if( distance < 2.0 ) distance = 2.0 ;
+          if( distance < 2.0 ) distance = 2.0 ;
 
-              if (distance >= 8.0)
-                epsilon = 80;
-              else if (distance <= 6.0)
-                epsilon = 4;
-              else
-                epsilon = 38 * distance - 224;
+          if( distance >= 2.0 ) {
 
-              phi += ( This_Structure.Residue[residue].Atom[atom].charge / ( epsilon * distance ) ) ;
+            if( distance >= 8.0 ) {
+
+              epsilon = 80 ;
+
+            } else { 
+
+              if( distance <= 6.0 ) { 
+
+                epsilon = 4 ;
+             
+              } else {
+
+                epsilon = ( 38 * distance ) - 224 ;
+
+              }
+
             }
+  
+            phi += ( (charge[atom]) / ( epsilon * distance ) ) ;
+
           }
+
         }
 
-        grid[i] = (fftw_real)phi;
-        i++;
+        grid[gaddress(x,y,z,grid_size)] = (fftw_real)phi ;
+
       }
-      i+=2;
     }
   }
 
@@ -182,7 +217,7 @@ void electric_point_charge( struct Structure This_Structure , float grid_span , 
 
   /* Co-ordinates */
 
-  int	x , y , z , i , j;
+  int	x , y , z ;
   int	x_low , x_high , y_low , y_high , z_low , z_high ;
 
   float		a , b , c ;
@@ -195,13 +230,14 @@ void electric_point_charge( struct Structure This_Structure , float grid_span , 
 
 /************/
 
-  i = 0;
-  j = 0;
-  while( j < grid_size*grid_size*grid_size) {
-    for( i = j ; i < j+grid_size ; i ++ ) {
-      grid[i] = (fftw_real)0;
+  for( x = 0 ; x < grid_size ; x ++ ) {
+    for( y = 0 ; y < grid_size ; y ++ ) {
+      for( z = 0 ; z < grid_size ; z ++ ) {
+
+        grid[gaddress(x,y,z,grid_size)] = (fftw_real)0 ;
+
+      }
     }
-    j += grid_size + 2;
   }
 
 /************/
@@ -268,19 +304,19 @@ void electric_field_zero_core( int grid_size , fftw_real *elec_grid , fftw_real 
 
   /* Co-ordinates */
 
-  int	x , y , z , i , j;
+  int	x , y , z ;
 
 /************/
 
-  i = 0;
-  j = 0;
-  while( j < grid_size*grid_size*grid_size) {
-    for( i = j ; i < j+grid_size ; i ++ ) {
-      if( surface_grid[i] == (fftw_real)internal_value ) elec_grid[i] = (fftw_real)0 ;
-    }
-    j += grid_size + 2;
-  }
+  for( x = 0 ; x < grid_size ; x ++ ) {
+    for( y = 0 ; y < grid_size ; y ++ ) {
+      for( z = 0 ; z < grid_size ; z ++ ) {
 
+        if( surface_grid[gaddress(x,y,z,grid_size)] == (fftw_real)internal_value ) elec_grid[gaddress(x,y,z,grid_size)] = (fftw_real)0 ;
+
+      }
+    }
+  }
 
 /************/
 

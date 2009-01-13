@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include "xmmintrin.h"
 #include "structures.h"
 
 void assign_charges( struct Structure This_Structure ) {
@@ -89,13 +90,17 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
   /* Co-ordinates */
 
-  int	x , y , z , i , j;
+  int	x , y , z , i , j , num_non_unrolled_iters;
   float		x_centre , y_centre , z_centre ;
 
   /* Variables */
 
-  float		distance ;
-  float		phi , epsilon ;
+  float		distance[4];
+  float		phi[4] __attribute__((aligned(16))) , epsilon[4] , coefficient[4] __attribute__((aligned(16))) , aux;
+
+  __m128 	phiVect , coefficientVect , atomVect;
+
+  char print_buffer[grid_size];
 
 /************/
 
@@ -117,7 +122,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   i = 0;
   for( x = 0 ; x < grid_size ; x ++ ) {
 
-    printf( "." ) ;
+//    print_buffer[x] = '.';
+    printf(".");
 
     x_centre  = gcentre( x , grid_span , grid_size ) ;
 
@@ -129,36 +135,95 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         z_centre  = gcentre( z , grid_span , grid_size ) ;
 
-        phi = 0 ;
+        phiVect = _mm_set1_ps(0.0);
+        aux = 0.0;
+//        phi[0] = 0.0 ; phi[1] = 0.0 ; phi[2] = 0.0 ; phi[3] = 0.0 ;
 
         for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
-          for( atom = 1 ; atom <= This_Structure.Residue[residue].size ; atom ++ ) {
+          num_non_unrolled_iters = This_Structure.Residue[residue].size % 4;
+          for( atom = 1 ; atom <= num_non_unrolled_iters ; atom ++ ) {
 
             if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
-              distance = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
+
+              distance[0] = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
          
-              if( distance < 2.0 ) distance = 2.0 ;
+              if( distance[0] < 2.0 ) distance[0] = 2.0 ;
 
-              if (distance >= 8.0)
-                epsilon = 80;
-              else if (distance <= 6.0)
-                epsilon = 4;
+              if (distance[0] >= 8.0)
+                coefficient[0] = distance[0] * 80.0;
+              else if (distance[0] <= 6.0)
+                coefficient[0] = distance[0] * 4.0;
               else
-                epsilon = 38 * distance - 224;
+                coefficient[0] = (38 * distance[0] - 224) * distance[0];
 
-              phi += ( This_Structure.Residue[residue].Atom[atom].charge / ( epsilon * distance ) ) ;
+              aux += This_Structure.Residue[residue].Atom[atom].charge / coefficient[0] ;
             }
+          }
+          for( atom ; atom <= This_Structure.Residue[residue].size ; atom += 4 ) {
+
+            distance[0] = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
+            distance[1] = pythagoras( This_Structure.Residue[residue].Atom[atom+1].coord[1] , This_Structure.Residue[residue].Atom[atom+1].coord[2] , This_Structure.Residue[residue].Atom[atom+1].coord[3] , x_centre , y_centre , z_centre ) ;
+            distance[2] = pythagoras( This_Structure.Residue[residue].Atom[atom+2].coord[1] , This_Structure.Residue[residue].Atom[atom+2].coord[2] , This_Structure.Residue[residue].Atom[atom+2].coord[3] , x_centre , y_centre , z_centre ) ;
+            distance[3] = pythagoras( This_Structure.Residue[residue].Atom[atom+3].coord[1] , This_Structure.Residue[residue].Atom[atom+3].coord[2] , This_Structure.Residue[residue].Atom[atom+3].coord[3] , x_centre , y_centre , z_centre ) ;
+         
+            if( distance[0] < 2.0 ) distance[0] = 2.0 ;
+            if( distance[1] < 2.0 ) distance[1] = 2.0 ;
+            if( distance[2] < 2.0 ) distance[2] = 2.0 ;
+            if( distance[3] < 2.0 ) distance[3] = 2.0 ;
+
+            if (distance[0] >= 8.0)
+              coefficient[0] = distance[0] * 80.0;
+            else if (distance[0] <= 6.0)
+              coefficient[0] = distance[0] * 4.0;
+            else
+              coefficient[0] = (38 * distance[0] - 224) * distance[0];
+
+            if (distance[1] >= 8.0)
+              coefficient[1] = distance[1] * 80.0;
+            else if (distance[1] <= 6.0)
+              coefficient[1] = distance[1] * 4.0;
+            else
+              coefficient[1] = (38 * distance[1] - 224) * distance[1];
+
+            if (distance[2] >= 8.0)
+              coefficient[2] = distance[2] * 80.0;
+            else if (distance[2] <= 6.0)
+              coefficient[2] = distance[2] * 4.0;
+            else
+              coefficient[2] = (38 * distance[2] - 224) * distance[2];
+
+            if (distance[3] >= 8.0)
+              coefficient[3] = distance[3] * 80.0;
+            else if (distance[3] <= 6.0)
+              coefficient[3] = distance[3] * 4.0;
+            else
+              coefficient[3] = (38 * distance[3] - 224) * distance[3];
+
+	    coefficientVect = _mm_load_ps(coefficient);
+
+            atomVect = _mm_set_ps(This_Structure.Residue[residue].Atom[atom+3].charge,
+                                  This_Structure.Residue[residue].Atom[atom+2].charge,
+                                  This_Structure.Residue[residue].Atom[atom+1].charge,
+                                  This_Structure.Residue[residue].Atom[atom].charge);
+
+            atomVect = _mm_div_ps(atomVect,coefficientVect);
+
+            phiVect = _mm_add_ps(phiVect,atomVect); 
           }
         }
 
-        grid[i] = (fftw_real)phi;
+        _mm_store_ps(phi,phiVect);
+        phi[0] = phi[0] + phi[1] + phi[2] + phi[3] + aux;
+
+        grid[i] = (fftw_real)(phi[0]);
         i++;
       }
       i+=2;
     }
   }
 
-  printf( "\n" ) ;
+//  printf("%s\n",print_buffer);
+  printf("\n");
 
 /************/
 
