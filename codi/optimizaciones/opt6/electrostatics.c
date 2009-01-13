@@ -90,7 +90,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
   /* Co-ordinates */
 
-  int	x , y , z , i , j , num_non_unrolled_iters;
+  int	x , y , z , i , j , num_unrolled_iters;
   float		x_centre , y_centre , z_centre ;
 
   /* Variables */
@@ -102,6 +102,11 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
   char print_buffer[grid_size];
 
+  int indexCharge , indexCoord;
+
+  float charge[4400] __attribute__((aligned(16)));
+  float coord[4400*3];
+
 /************/
 
   i = 0;
@@ -111,6 +116,21 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
       grid[i] = (fftw_real)0;
     }
     j += grid_size + 2;
+  }
+
+  indexCoord = 0;
+  indexCharge = 0;
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+    for( atom = 1 ; atom <= This_Structure.Residue[residue].size ; atom ++ ) {
+      if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
+        charge[indexCharge] = This_Structure.Residue[residue].Atom[atom].charge;
+        coord[indexCoord] = This_Structure.Residue[residue].Atom[atom].coord[1];
+        coord[indexCoord+1] = This_Structure.Residue[residue].Atom[atom].coord[2];
+        coord[indexCoord+2] = This_Structure.Residue[residue].Atom[atom].coord[3];
+        indexCharge++;
+        indexCoord+=3;
+      }
+    }
   }
 
 /************/
@@ -137,79 +157,76 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         phiVect = _mm_set1_ps(0.0);
         aux = 0.0;
-//        phi[0] = 0.0 ; phi[1] = 0.0 ; phi[2] = 0.0 ; phi[3] = 0.0 ;
 
-        for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
-          num_non_unrolled_iters = This_Structure.Residue[residue].size % 4;
-          for( atom = 1 ; atom <= num_non_unrolled_iters ; atom ++ ) {
+        indexCoord = 0;
+        num_unrolled_iters = indexCharge - (indexCharge % 4);
 
-            if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
+        for( atom = 0 ; atom <= num_unrolled_iters ; atom += 4 ) {
 
-              distance[0] = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
-         
-              if( distance[0] < 2.0 ) distance[0] = 2.0 ;
+          distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
+          distance[0] = pythagoras( coord[indexCoord+3], coord[indexCoord+4], coord[indexCoord+5] , x_centre , y_centre , z_centre ) ;
+          distance[0] = pythagoras( coord[indexCoord+6], coord[indexCoord+7], coord[indexCoord+8] , x_centre , y_centre , z_centre ) ;
+          distance[0] = pythagoras( coord[indexCoord+9], coord[indexCoord+10], coord[indexCoord+11] , x_centre , y_centre , z_centre ) ;
+ 
+          if( distance[0] < 2.0 ) distance[0] = 2.0 ;
+          if( distance[1] < 2.0 ) distance[1] = 2.0 ;
+          if( distance[2] < 2.0 ) distance[2] = 2.0 ;
+          if( distance[3] < 2.0 ) distance[3] = 2.0 ;
 
-              if (distance[0] >= 8.0)
-                coefficient[0] = distance[0] * 80.0;
-              else if (distance[0] <= 6.0)
-                coefficient[0] = distance[0] * 4.0;
-              else
-                coefficient[0] = (38 * distance[0] - 224) * distance[0];
+          if (distance[0] >= 8.0)
+            coefficient[0] = distance[0] * 80.0;
+          else if (distance[0] <= 6.0)
+            coefficient[0] = distance[0] * 4.0;
+          else
+            coefficient[0] = (38 * distance[0] - 224) * distance[0];
 
-              aux += This_Structure.Residue[residue].Atom[atom].charge / coefficient[0] ;
-            }
-          }
-          for( atom ; atom <= This_Structure.Residue[residue].size ; atom += 4 ) {
+          if (distance[1] >= 8.0)
+            coefficient[1] = distance[1] * 80.0;
+          else if (distance[1] <= 6.0)
+            coefficient[1] = distance[1] * 4.0;
+          else
+            coefficient[1] = (38 * distance[1] - 224) * distance[1];
 
-            distance[0] = pythagoras( This_Structure.Residue[residue].Atom[atom].coord[1] , This_Structure.Residue[residue].Atom[atom].coord[2] , This_Structure.Residue[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) ;
-            distance[1] = pythagoras( This_Structure.Residue[residue].Atom[atom+1].coord[1] , This_Structure.Residue[residue].Atom[atom+1].coord[2] , This_Structure.Residue[residue].Atom[atom+1].coord[3] , x_centre , y_centre , z_centre ) ;
-            distance[2] = pythagoras( This_Structure.Residue[residue].Atom[atom+2].coord[1] , This_Structure.Residue[residue].Atom[atom+2].coord[2] , This_Structure.Residue[residue].Atom[atom+2].coord[3] , x_centre , y_centre , z_centre ) ;
-            distance[3] = pythagoras( This_Structure.Residue[residue].Atom[atom+3].coord[1] , This_Structure.Residue[residue].Atom[atom+3].coord[2] , This_Structure.Residue[residue].Atom[atom+3].coord[3] , x_centre , y_centre , z_centre ) ;
-         
-            if( distance[0] < 2.0 ) distance[0] = 2.0 ;
-            if( distance[1] < 2.0 ) distance[1] = 2.0 ;
-            if( distance[2] < 2.0 ) distance[2] = 2.0 ;
-            if( distance[3] < 2.0 ) distance[3] = 2.0 ;
+          if (distance[2] >= 8.0)
+            coefficient[2] = distance[2] * 80.0;
+          else if (distance[2] <= 6.0)
+            coefficient[2] = distance[2] * 4.0;
+          else
+            coefficient[2] = (38 * distance[2] - 224) * distance[2];
 
-            if (distance[0] >= 8.0)
-              coefficient[0] = distance[0] * 80.0;
-            else if (distance[0] <= 6.0)
-              coefficient[0] = distance[0] * 4.0;
-            else
-              coefficient[0] = (38 * distance[0] - 224) * distance[0];
+          if (distance[3] >= 8.0)
+            coefficient[3] = distance[3] * 80.0;
+          else if (distance[3] <= 6.0)
+            coefficient[3] = distance[3] * 4.0;
+          else
+            coefficient[3] = (38 * distance[3] - 224) * distance[3];
 
-            if (distance[1] >= 8.0)
-              coefficient[1] = distance[1] * 80.0;
-            else if (distance[1] <= 6.0)
-              coefficient[1] = distance[1] * 4.0;
-            else
-              coefficient[1] = (38 * distance[1] - 224) * distance[1];
+          coefficientVect = _mm_load_ps(coefficient);
 
-            if (distance[2] >= 8.0)
-              coefficient[2] = distance[2] * 80.0;
-            else if (distance[2] <= 6.0)
-              coefficient[2] = distance[2] * 4.0;
-            else
-              coefficient[2] = (38 * distance[2] - 224) * distance[2];
+//printf("@charge[%d]=%x",atom,&(charge[atom]));
+          atomVect = _mm_load_ps(&(charge[atom]));
 
-            if (distance[3] >= 8.0)
-              coefficient[3] = distance[3] * 80.0;
-            else if (distance[3] <= 6.0)
-              coefficient[3] = distance[3] * 4.0;
-            else
-              coefficient[3] = (38 * distance[3] - 224) * distance[3];
+          atomVect = _mm_div_ps(atomVect,coefficientVect);
 
-	    coefficientVect = _mm_load_ps(coefficient);
+          phiVect = _mm_add_ps(phiVect,atomVect); 
+        }
 
-            atomVect = _mm_set_ps(This_Structure.Residue[residue].Atom[atom+3].charge,
-                                  This_Structure.Residue[residue].Atom[atom+2].charge,
-                                  This_Structure.Residue[residue].Atom[atom+1].charge,
-                                  This_Structure.Residue[residue].Atom[atom].charge);
+        for( atom ; atom <= indexCharge ; atom ++ ) {
 
-            atomVect = _mm_div_ps(atomVect,coefficientVect);
+          distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
 
-            phiVect = _mm_add_ps(phiVect,atomVect); 
-          }
+          indexCoord += 3;
+
+          if( distance[0] < 2.0 ) distance[0] = 2.0 ;
+
+          if (distance[0] >= 8.0)
+            coefficient[0] = distance[0] * 80.0;
+          else if (distance[0] <= 6.0)
+            coefficient[0] = distance[0] * 4.0;
+          else
+            coefficient[0] = (38 * distance[0] - 224) * distance[0];
+
+          aux += charge[atom] / coefficient[0] ;
         }
 
         _mm_store_ps(phi,phiVect);
@@ -345,8 +362,6 @@ void electric_field_zero_core( int grid_size , fftw_real *elec_grid , fftw_real 
     }
     j += grid_size + 2;
   }
-
-
 /************/
 
   return ;
