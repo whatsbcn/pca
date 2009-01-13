@@ -96,7 +96,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   /* Variables */
 
   float		distance[4];
-  float		phi[4] __attribute__((aligned(16))) , epsilon[4] , coefficient[4] __attribute__((aligned(16))) , aux;
+  float		phi[4] __attribute__((aligned(16))) , epsilon[4] , coefficient[4] __attribute__((aligned(16)));
 
   __m128 	phiVect , coefficientVect , atomVect;
 
@@ -142,8 +142,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   i = 0;
   for( x = 0 ; x < grid_size ; x ++ ) {
 
-//    print_buffer[x] = '.';
-    printf(".");
+    print_buffer[x] = '.';
+//    printf(".");
 
     x_centre  = gcentre( x , grid_span , grid_size ) ;
 
@@ -156,7 +156,6 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
         z_centre  = gcentre( z , grid_span , grid_size ) ;
 
         phiVect = _mm_set1_ps(0.0);
-        aux = 0.0;
 
         indexCoord = 0;
         num_unrolled_iters = indexCharge - (indexCharge % 4);
@@ -164,10 +163,14 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
         for( atom = 0 ; atom <= num_unrolled_iters ; atom += 4 ) {
 
           distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
-          distance[0] = pythagoras( coord[indexCoord+3], coord[indexCoord+4], coord[indexCoord+5] , x_centre , y_centre , z_centre ) ;
-          distance[0] = pythagoras( coord[indexCoord+6], coord[indexCoord+7], coord[indexCoord+8] , x_centre , y_centre , z_centre ) ;
-          distance[0] = pythagoras( coord[indexCoord+9], coord[indexCoord+10], coord[indexCoord+11] , x_centre , y_centre , z_centre ) ;
+          distance[1] = pythagoras( coord[indexCoord+3], coord[indexCoord+4], coord[indexCoord+5] , x_centre , y_centre , z_centre ) ;
+          distance[2] = pythagoras( coord[indexCoord+6], coord[indexCoord+7], coord[indexCoord+8] , x_centre , y_centre , z_centre ) ;
+          distance[3] = pythagoras( coord[indexCoord+9], coord[indexCoord+10], coord[indexCoord+11] , x_centre , y_centre , z_centre ) ;
  
+          indexCoord += 12;
+
+          atomVect = _mm_load_ps(&(charge[atom]));
+
           if( distance[0] < 2.0 ) distance[0] = 2.0 ;
           if( distance[1] < 2.0 ) distance[1] = 2.0 ;
           if( distance[2] < 2.0 ) distance[2] = 2.0 ;
@@ -203,13 +206,12 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
           coefficientVect = _mm_load_ps(coefficient);
 
-//printf("@charge[%d]=%x",atom,&(charge[atom]));
-          atomVect = _mm_load_ps(&(charge[atom]));
-
           atomVect = _mm_div_ps(atomVect,coefficientVect);
 
           phiVect = _mm_add_ps(phiVect,atomVect); 
         }
+
+        _mm_store_ps(phi,phiVect);
 
         for( atom ; atom <= indexCharge ; atom ++ ) {
 
@@ -226,11 +228,10 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
           else
             coefficient[0] = (38 * distance[0] - 224) * distance[0];
 
-          aux += charge[atom] / coefficient[0] ;
+          phi[0] += charge[atom] / coefficient[0] ;
         }
 
-        _mm_store_ps(phi,phiVect);
-        phi[0] = phi[0] + phi[1] + phi[2] + phi[3] + aux;
+        phi[0] = phi[0] + phi[1] + phi[2] + phi[3];
 
         grid[i] = (fftw_real)(phi[0]);
         i++;
@@ -239,8 +240,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
     }
   }
 
-//  printf("%s\n",print_buffer);
-  printf("\n");
+  printf("%s\n",print_buffer);
+//  printf("\n");
 
 /************/
 

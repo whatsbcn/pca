@@ -89,7 +89,7 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
   /* Co-ordinates */
 
-  int	x , y , z , i , j , num_non_unrolled_iters;
+  int	x , y , z , i , j , num_unrolled_iters;
   float		x_centre , y_centre , z_centre ;
 
   /* Variables */
@@ -139,8 +139,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
   i = 0;
   for( x = 0 ; x < grid_size ; x ++ ) {
 
-//    print_buffer[x] = '.';
-    printf(".");
+    print_buffer[x] = '.';
+//    printf(".");
 
     x_centre  = gcentre( x , grid_span , grid_size ) ;
 
@@ -155,27 +155,9 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
         phi[0] = 0.0 ; phi[1] = 0.0 ; phi[2] = 0.0 ; phi[3] = 0.0 ;
 
         indexCoord = 0;
-        num_non_unrolled_iters = indexCharge % 4;
+        num_unrolled_iters = indexCharge - (indexCharge % 4);
 
-        for( atom = 0 ; atom <= num_non_unrolled_iters ; atom ++ ) {
-
-          distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
-
-          indexCoord += 3;
-
-          if( distance[0] < 2.0 ) distance[0] = 2.0 ;
-
-          if (distance[0] >= 8.0)
-            coefficient[0] = distance[0] * 80.0;
-          else if (distance[0] <= 6.0)
-            coefficient[0] = distance[0] * 4.0;
-          else
-            coefficient[0] = (38 * distance[0] - 224) * distance[0];
-
-          phi[0] += charge[atom] / coefficient[0] ;
-        }
-
-        for( atom ; atom <= indexCharge ; atom += 4 ) {
+        for( atom = 0 ; atom <= num_unrolled_iters ; atom += 4 ) {
 
           distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
           indexCoord += 3;
@@ -223,6 +205,24 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
 
         }
 
+        for( atom ; atom <= indexCharge ; atom ++ ) {
+
+          distance[0] = pythagoras( coord[indexCoord], coord[indexCoord+1], coord[indexCoord+2] , x_centre , y_centre , z_centre ) ;
+
+          indexCoord += 3;
+
+          if( distance[0] < 2.0 ) distance[0] = 2.0 ;
+
+          if (distance[0] >= 8.0)
+            coefficient[0] = distance[0] * 80.0;
+          else if (distance[0] <= 6.0)
+            coefficient[0] = distance[0] * 4.0;
+          else
+            coefficient[0] = (38 * distance[0] - 224) * distance[0];
+
+          phi[0] += charge[atom] / coefficient[0] ;
+        }
+
         phi[0] = phi[0] + phi[1] + phi[2] + phi[3];
 
         grid[i] = (fftw_real)(phi[0]);
@@ -232,8 +232,8 @@ void electric_field( struct Structure This_Structure , float grid_span , int gri
     }
   }
 
-//  printf("%s\n",print_buffer);
-  printf("\n");
+  printf("%s\n",print_buffer);
+//  printf("\n");
 
 /************/
 
