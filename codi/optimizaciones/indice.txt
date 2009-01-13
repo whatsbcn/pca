@@ -1,6 +1,0 @@
-Optimizacion 1: Evitar llamadas a gaddress.
-Optimizacion 2: Filtrado de datos
-Optimizacion 3: Evitar saltos en los bucles y condicionales.
-Optimizacion 4: Buffering de printf.
-Optimizacion 5: Unrolling.
-Optimizacion 6: Vectorizacion. 
