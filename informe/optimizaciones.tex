@@ -222,6 +222,130 @@ se hace el unrolling. El c\'{o}digo resultante es el siguiente:
 Una vez el 
 
 
+\subsection{OptA: Vectorizaci\'{o}n ineficiente}
+
+En la funci\'{o}n \texttt{pythagoras} se calcula la dist\'{a}ncia euclidea
+entre dos vectores. Para calcularla, se ejecutan tres instrucciones: una 
+resta de componentes, una exponencial cuadrada, una suma de cada una de las
+componentes, y la raiz cuadrada de esta suma.
+
+\begin{lstlisting}
+	sqrt( 
+		( ( x1 - x2 ) * ( x1 - x2 ) ) 
+		+ 
+		( ( y1 - y2 ) * ( y1 - y2 ) ) 
+		+ 
+		( ( z1 - z2 ) * ( z1 - z2 ) ) 
+		) ;
+\end{lstlisting}
+
+La transformaci\'{o}n de esta funci\'{o}n a vectorial, es bastante inmediata:
+
+\begin{lstlisting}
+	__m128 v1 = _mm_set_ps(x1, y1, z1, 0);
+	__m128 v2 = _mm_set_ps(x2, y2, z2, 0);
+	
+	v1 = _mm_sub_ps(v1, v2);
+	v1 = _mm_mul_ps(v1, v1);
+	
+	_mm_storeu_ps(vector, v1);
+	
+	sqrt(vector[1]+vector[2]+vector[3]);
+\end{lstlisting}
+
+Como vemos en el codigo anterior, a la hora de cargar los valores al
+registro vectorial, tenemos que rellenar el \'{u}ltimo con algun valor
+aunque no lo vayamos a utilizar.
+
+En este trozo de c\'{o}digo, solo hacemos dos operaciones vectoriales
+que s\'{o}n una suma i una multiplicaci\'{o}n, y adem\'{a}s, de los cuatro
+valores, solo vamos a utilizar tres. Estos dos motivos, junto con que para
+trabajar con las operaciones vectoriales necesitamos hacer el load hacia 
+el registro vectorial, y el store hacia el registro no vectorial, hacen que
+nuestra mejora, no sea una mejora, sin\'{o} que empeore el rendimiento de
+la aplicaci\'{o}n.
+
+\subsection{OptB: Uso de SSE3}
+
+Al ver que la funci\'{o}n pythagoras era la m\'{a}s ejecutada, y la que
+m\'{a}s tiempo consumia en total, nos hemos visto obligados a intentar
+salvar el problema del coste que tiene hacer un load y un store a un
+registro vectorial para hacer solo dos operaciones. Es por ese motivo que
+hemos intentado a\~{n}adir m\'{a}s operaciones vectoriales, y eliminar los
+accesos a mem\'{o}ria.
+
+Para hacer esto, hemos usado operaciones a\'{u}n no utilizadas por nosotros,
+como s\'{o}n las SSE3
+
+\begin{lstlisting}
+	float result;
+	
+	__m128 v1 = _mm_set_ps(x1, y1, z1, 0);
+	__m128 v2 = _mm_set_ps(x2, y2, z2, 0);
+	
+	v1 = _mm_sub_ps(v1, v2);
+	v1 = _mm_mul_ps(v1, v1);
+
+	v1 = _mm_hadd_ps(v1, v1);
+	v1 = _mm_hadd_ps(v1, v1);
+	v1 = _mm_sqrt_ss(v1);	
+	
+	_mm_store_ss(&result, v1);
+\end{lstlisting}
+
+Podemos ver que hemos utilizado el intrinseco \texttt{\_mm\_hadd\_ps} dos
+veces para ahorrarnos las sumas, y el intrinseco \texttt{\_mm\_sqrt\_ss} para
+calcular la raiz cuadrada de la suma anterior. De esta forma, al tener que
+recuperar solo un \texttt{float} del registro vectorial, hemos podido usar
+el intrinseco \texttt{\_mm\_store\_ss} i as\'{i} ahorrarnos accesos a
+mem\'{o}ria.
+
+Para poder utilizar estas nuevas intrinsecas, ha sido necesario utilizar el
+flag -msse3 del gcc.
+
+\subsection{OptC: Inlineing}
+
+Viendo que el principal penalizador para nuestra funci\'{o}n
+\texttt{pythagoras} eran los accesos a mem\'{o}ria, y estudiando un poco el
+origen de la mayor\'{i}a de las llamadas a esta funci\'{o}n, hemos visto
+que hav\'{i}an parametros que cada vez se pasaban sin ser modificados. Esto
+provocaba el tener que cargarlos en un registro vectorial, cuando ya
+podr\'{i}an haber estado cargados de la ejecuci\'{o}n anterior.
+
+\begin{lstlisting}
+	distance = pythagoras(This_Structure.Residue[residue].Atom[atom].coord[1], 
+						  This_Structure.Residue[residue].Atom[atom].coord[2], 
+						  This_Structure.Residue[residue].Atom[atom].coord[3],
+						  x_centre, y_centre, z_centre);
+\end{lstlisting}
+ 
+En el fichero \texttt{electrostatics.c} podemos ver que los parametros
+\texttt{x\_centre}, \texttt{y\_centre} y \texttt{z\_centre} no canvian a cada
+iteraci\'{o}n del bucle, sin\'{o} que se mantienen fijos durante muchas
+iteraciones. Por este motivo, si hacemos inlineing, podemos llegar a
+utilizar esto, y cargar el registro vectorial cuando se modifique uno de
+estos valores.
+
+Si lo hacemos as\'{i}, obtenemos el siguiente c\'{odigo}:
+
+\begin{lstlisting}
+	z_centre  = gcentre( z , grid_span , grid_size ) ;
+	__m128 v2 = _mm_set_ps(x_centre, y_centre, z_centre, 0);
+	phi = 0 ;
+	for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+		for( atom = 1 ; atom <= This_Structure.Residue[residue].size ; atom ++ ) {
+			if( This_Structure.Residue[residue].Atom[atom].charge != 0 ) {
+				__m128 v1 = _mm_set_ps(This_Structure.Residue[residue].Atom[atom].coord[1],
+						This_Structure.Residue[residue].Atom[atom].coord[2],
+						This_Structure.Residue[residue].Atom[atom].coord[3], 0);
+				v1 = _mm_sub_ps(v1, v2);
+				v1 = _mm_mul_ps(v1, v1);
+				v1 = _mm_hadd_ps(v1, v1);
+				v1 = _mm_hadd_ps(v1, v1);
+				v1 = _mm_sqrt_ss(v1);	
+				_mm_store_ss(&distance, v1);
+\end{lstlisting}
+
 
 \subsection{Ayuda}
 

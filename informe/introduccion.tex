@@ -1,6 +1,26 @@
 \section{Introducci\'{o}n}
 
-Aqu\'{i} va la introducci\'{o}n.
+Para realizar los profiles del programa hemos utilizado la herramienta gprof.
+Hemos escogido esta porque, aunque los resultados pueden diferir, nos da los
+valores absolutos en la aplicaci\'{o}n ejecutada y no en el sistema. Para
+ejecutar profile hemos a\~{n}adido los flags \texttt{-g} \texttt{-p} en la compilaci\'{o}n. Una vez
+modificado el c\'{o}digo, ejecutabamos gprof y guardabamos los valores obtenidos. 
 
+Hemos utilizado los scripts principalmente para preparar el entorno de
+pruevas, y para cambiar de una optimizaci\'{o}n a otra. No hemos utilizado scripts
+para comprobar las diferencias de rendimiento entre ejecuciones, ya que hicios
+que se printase por salida de error, el elapsed time de cada ejecuci\'{o}n.
+Teniendo esto, solo nos era necesario ejecutar y comparar el tiempo entre ejecuciones.
+
+Para comprobar que un fichero de salida era correcto, hemos utilizado la
+herramienta md5sum. 
+
+Nos hemos dedicado a optimizar las funciones, empezando por la que consume m\'{a}s
+tiempo y acabando en la que menos.
+
+Hemos realizado la pr\'{a}ctica en los mismos ordenadores donde hac\'{i}amos los
+laboratorios. Los archivos de programa y de entrada, los guardaba antes de
+empezar el directorio tmp para evitar latencias debido al transporte de la
+red.
 
 % vim: filetype=tex tw=75
