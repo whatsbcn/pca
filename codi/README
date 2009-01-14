@@ -1,0 +1,42 @@
+CONTENIDOS
+
+	Scripts de instalacion, compilacion y ejecucion.
+
+	TGZs
+		Directorio con los archivos comprimidos para el proceso de instalacion.
+
+	optimizaciones
+		Directorio con los codigos de las optimizaciones.
+                Hay 9 subdirectorios, uno para cada optimizacion.
+                Cada subdirectorio contiene el codigo modificado para la optimizacion
+		y un script que se llama al compilar.
+
+MODO DE USO
+
+	La instalacion, compilacion y ejecucion se hacen mediante los scripts.
+
+	Los scripts funcionan con una terminal Bash.
+
+INSTALACION
+
+	Ejecutar el script de instalacion con el comando: ". ./instalacion.sh"
+
+	Se crea un directorio con el codigo compilado del FTDock, un directorio con la libreria
+        compilada y un directorio con los outputs del programa original para cada test.
+
+COMPILACION
+
+	Ejecutar el script de compilacion con la optimizacion deseada: ". ./compilacion.sh optX"
+
+	Para compilar el codigo original utilizar el comando: ". ./compilacion.sh orig"
+
+EJECUCION
+
+	Ejecutar el script de ejecucion con el comando: ". ./ejecucion.sh"
+
+	Se ejecuta el ultimo codigo compilado.
+
+	Los ficheros de salida para cada test se crean en el directorio outputs.
+
+	Los tiempos de ejecucion se imprimen por pantalla.
+
