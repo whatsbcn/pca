@@ -1,21 +1,16 @@
 \section{Optimizaciones}
 
-La metodolog\'{i}a utilizada para llevar a cabo las optimizaciones es un
-proceso iterativo que incluye los siguientes pasos en cada iteraci\'{o}n:
+Las optimizaciones se han llevado a cabo sobre las funciones
+\texttt{electric\_field} y \texttt{pythagoras}.
 
-\begin{itemize}
-\item Identificar la parte del c\'{o}digo que consume m\'{a}s tiempo
-\item Realizar una optimizaci\'{o}n
-\item Comprobar que la optimizaci\'{o}n mejora el rendimiento del programa
-\end{itemize}
+Las optimizaciones se han realizado de forma incremental. Esto significa que la
+optimizaci\'{o}n X incluye las optimizaciones 0 a X-1 y que las modificaciones
+se han realizado sobre la versi\'{o}n X-1.
 
-Utilizando la herramienta \texttt{gprof} se han identificado las partes del
-c\'{o}digo original que consumen la mayor\'{i}a del tiempo de ejecuci\'{o}n.
-La salida proporcionada por dicha herramienta es la siguiente:
-
-
-En consecuencia, el objetivo de la primera optimizaci\'{o}n es la funci\'{o}n
-\texttt{electric\_field}.
+El an\'{a}lisis de rendimiento de una optimizaci\'{o}n se ha hecho comparando
+con la optimizaci\'{o}n anterior y con el c\'{o}digo de base. Con estas dos
+comparaciones se puede observar cual es la ganancia total acumulada y la
+ganancia de la optimizaci\'{o}n propuesta, respectivamente.
 
 \subsection{Opt1: Evitar llamadas a funciones}
 
@@ -67,15 +62,9 @@ Esta optimizaci\'{o}n se ha aplicado de la misma forma en otros puntos, como en
 \texttt{electric\_field\_zero\_core} o en el primer bucle de
 \texttt{electric\_point\_charge}.
 
-\subsection{Opt2: Evitar saltos}
+\subsection{Opt2: Filtrado de datos}
 
-Los saltos, como las llamadas a funciones, son instrucciones que pueden llegar
-a ser muy costosas debido a  los posibles fallos del predictor de saltos, por
-eso es conveniente evitar los saltos innecesarios.
-
-En el bucle m\'{a}s interno de la funci\'{o}n \texttt{electric\_field} hay
-varias comprobaciones que se traducen en saltos al compilar. Adem\'{a}s, muchos
-de estas comprobaciones son innecesarias u optimizables.
+Explicar tecnica.
 
 La primera l\'{i}nea del cuerpo del bucle es una comprobaci\'{o}n de que un
 cierto valor es distinto de cero, pero lo cierto es que la comprobaci\'{o}n es
@@ -96,11 +85,19 @@ cero y, si es cero, el resultado de divisi\'{o}n es cero y
 \texttt{phi} se incrementa cero, haciendo que el resultado final sea correcto.
 El problema es que el coste de hacer siempre este c\'{a}lculo es mayor que los
 beneficios que supone ahorrarse la evaluaci\'{o}n de la condici\'{o}n y las
-posibles penalizaciones 
+posibles penalizaciones
 por fallos del predictor de saltos, as\'{i} que la eleminaci\'{o}n no se ha
 llevado a cabo.
 
-Otra serie de sentencias condicionales que se puede simplificar es:
+\subsection{Opt3: Evitar saltos}
+
+Los saltos, como las llamadas a funciones, son instrucciones que pueden llegar
+a ser muy costosas debido a  los posibles fallos del predictor de saltos, por
+eso es conveniente evitar los saltos innecesarios.
+
+En el bucle m\'{a}s interno de la funci\'{o}n \texttt{electric\_field} hay
+varias comprobaciones que se traducen en saltos al compilar. Algunas de estas
+comprobaciones son innecesarias u optimizables.
 
 \begin{lstlisting}[]
      if( distance < 2.0 ) distance = 2.0 ;
@@ -169,7 +166,7 @@ Esta optimizaci\'{o}n se ha aplicado de la misma forma en otros puntos, como en
 \texttt{electric\_field\_zero\_core} o en el primer bucle de
 \texttt{electric\_point\_charge}.
 
-\subsection{Opt3: Evitar llamadas a sistema}
+\subsection{Opt4: Evitar llamadas a sistema}
 
 Las llamadas a sistema son un tipo de instrucci\'{o}n especialmente costoso, ya
 que provocan tener que entrar a modo sistema, salvar el contexto, ensuciar la
@@ -182,7 +179,7 @@ la ejecuci\'{o}n se hagan \texttt{grid\_size} \texttt{printf}'s que escriben un
 solo punto, cuando lo \'{o}ptimo es hacer un solo \texttt{printf} que escriba
 \texttt{grid\_size} puntos.
 
-\subsection{Opt4: Unrolling}
+\subsection{Opt5: Unrolling}
 
 El unrolling es una t\'{e}cnica que consiste en replicar el c\'{o}digo de un
 bucle N veces para as\'{i} reducir el n\'{u}mero de saltos que se realizan al
@@ -217,17 +214,17 @@ se hace el unrolling. El c\'{o}digo resultante es el siguiente:
      }
 \end{lstlisting}
 
-\subsection{Opt5: Vectorizaci\'{o}n}
+\subsection{Opt6: Vectorizaci\'{o}n}
 
 Una vez el 
 
 
-\subsection{OptA: Vectorizaci\'{o}n ineficiente}
+\subsection{Opt7: Vectorizaci\'{o}n}
 
-En la funci\'{o}n \texttt{pythagoras} se calcula la dist\'{a}ncia euclidea
-entre dos vectores. Para calcularla, se ejecutan tres instrucciones: una 
-resta de componentes, una exponencial cuadrada, una suma de cada una de las
-componentes, y la raiz cuadrada de esta suma.
+En la funci\'{o}n \texttt{pythagoras} se calcula la distancia eucl\'{i}dea
+entre dos vectores. Para calcularla se ejecutan muchas instrucciones: se restan
+de componentes, se hacen tres exponencial cuadradas, se suman todas las
+componentes y finalmente se hace una raiz cuadrada del resultado de la suma.
 
 \begin{lstlisting}
 	sqrt( 
@@ -239,7 +236,7 @@ componentes, y la raiz cuadrada de esta suma.
 		) ;
 \end{lstlisting}
 
-La transformaci\'{o}n de esta funci\'{o}n a vectorial, es bastante inmediata:
+La transformaci\'{o}n de esta funci\'{o}n a c\'{o}digo vectorial es inmediata:
 
 \begin{lstlisting}
 	__m128 v1 = _mm_set_ps(x1, y1, z1, 0);
@@ -253,29 +250,22 @@ La transformaci\'{o}n de esta funci\'{o}n a vectorial, es bastante inmediata:
 	sqrt(vector[1]+vector[2]+vector[3]);
 \end{lstlisting}
 
-Como vemos en el codigo anterior, a la hora de cargar los valores al
-registro vectorial, tenemos que rellenar el \'{u}ltimo con algun valor
-aunque no lo vayamos a utilizar.
+Como se puede ver en el codigo anterior, a la hora de cargar los valores al
+registro vectorial hay que rellenar la \'{u}ltima posici\'{o}n con alg\'{u}n
+valor aunque no se vaya a utilizar.
 
-En este trozo de c\'{o}digo, solo hacemos dos operaciones vectoriales
-que s\'{o}n una suma i una multiplicaci\'{o}n, y adem\'{a}s, de los cuatro
-valores, solo vamos a utilizar tres. Estos dos motivos, junto con que para
-trabajar con las operaciones vectoriales necesitamos hacer el load hacia 
-el registro vectorial, y el store hacia el registro no vectorial, hacen que
-nuestra mejora, no sea una mejora, sin\'{o} que empeore el rendimiento de
-la aplicaci\'{o}n.
+En este c\'{o}digo solo se hacen dos operaciones vectoriales, una suma y una
+multiplicaci\'{o}n, adem\'{a}s de solo utilizar tres de los cuatro valores en
+el registro vectorial. Estos dos motivos, junto con que para trabajar con
+vectores se necesita hacer un load hacia el registro vectorial y un store a
+memoria, hacen que empeore el rendimiento de la aplicaci\'{o}n.
 
-\subsection{OptB: Uso de SSE3}
+\subsection{Opt8: Vectorizaci\'{o}n con SSE3}
 
-Al ver que la funci\'{o}n pythagoras era la m\'{a}s ejecutada, y la que
-m\'{a}s tiempo consumia en total, nos hemos visto obligados a intentar
-salvar el problema del coste que tiene hacer un load y un store a un
-registro vectorial para hacer solo dos operaciones. Es por ese motivo que
-hemos intentado a\~{n}adir m\'{a}s operaciones vectoriales, y eliminar los
-accesos a mem\'{o}ria.
-
-Para hacer esto, hemos usado operaciones a\'{u}n no utilizadas por nosotros,
-como s\'{o}n las SSE3
+Para intentar solventar el problema del coste que tiene hacer un load y un store
+a un registro vectorial para hacer solo dos operaciones se han a\~{n}adido
+m\'{a}s operaciones vectoriales y se han eliminado los accesos a memoria
+utilizando intr\'{i}nsicas de SSE3.
 
 \begin{lstlisting}
 	float result;
@@ -293,24 +283,19 @@ como s\'{o}n las SSE3
 	_mm_store_ss(&result, v1);
 \end{lstlisting}
 
-Podemos ver que hemos utilizado el intrinseco \texttt{\_mm\_hadd\_ps} dos
-veces para ahorrarnos las sumas, y el intrinseco \texttt{\_mm\_sqrt\_ss} para
-calcular la raiz cuadrada de la suma anterior. De esta forma, al tener que
-recuperar solo un \texttt{float} del registro vectorial, hemos podido usar
-el intrinseco \texttt{\_mm\_store\_ss} i as\'{i} ahorrarnos accesos a
-mem\'{o}ria.
+Utilizado la intr\'{i}nseca \texttt{\_mm\_hadd\_ps} dos veces se ahorrarn las
+sumas y la intr\'{i}nseca \texttt{\_mm\_sqrt\_ss} calcula la raiz cuadrada de la
+suma anterior de forma muy eficiente. Esto, a\~{n}adido al hecho de tener que
+recuperar solo un valor del registro vectorial, hace que el tiempo de
+ejecuci\'{o}n mejore.
 
-Para poder utilizar estas nuevas intrinsecas, ha sido necesario utilizar el
-flag -msse3 del gcc.
+\subsection{Opt9: Inlining}
 
-\subsection{OptC: Inlineing}
-
-Viendo que el principal penalizador para nuestra funci\'{o}n
-\texttt{pythagoras} eran los accesos a mem\'{o}ria, y estudiando un poco el
-origen de la mayor\'{i}a de las llamadas a esta funci\'{o}n, hemos visto
-que hav\'{i}an parametros que cada vez se pasaban sin ser modificados. Esto
-provocaba el tener que cargarlos en un registro vectorial, cuando ya
-podr\'{i}an haber estado cargados de la ejecuci\'{o}n anterior.
+Viendo que el motivo principal de penalizaci\'{o}n en \texttt{pythagoras} son
+los accesos a memoria y estudiando el or\'{i}gen de la mayor\'{i}a de las
+llamadas a esta funci\'{o}n, se ha notado que hay parametros que se pasan a cada
+llamada sin ser modificados. Este hecho provoca cargas al registro vectorial
+innecesarias.
 
 \begin{lstlisting}
 	distance = pythagoras(This_Structure.Residue[residue].Atom[atom].coord[1], 
@@ -319,14 +304,10 @@ podr\'{i}an haber estado cargados de la ejecuci\'{o}n anterior.
 						  x_centre, y_centre, z_centre);
 \end{lstlisting}
  
-En el fichero \texttt{electrostatics.c} podemos ver que los parametros
-\texttt{x\_centre}, \texttt{y\_centre} y \texttt{z\_centre} no canvian a cada
-iteraci\'{o}n del bucle, sin\'{o} que se mantienen fijos durante muchas
-iteraciones. Por este motivo, si hacemos inlineing, podemos llegar a
-utilizar esto, y cargar el registro vectorial cuando se modifique uno de
-estos valores.
-
-Si lo hacemos as\'{i}, obtenemos el siguiente c\'{odigo}:
+Los valores \texttt{x\_centre}, \texttt{y\_centre} y \texttt{z\_centre} no
+canbian a cada iteraci\'{o}n del bucle sin\'{o} que se mantienen constantes
+durante muchas iteraciones. Por este motivo, haciendo inlining, se pueden
+hacer cargas el registro vectorial solo cuando se modifica uno de estos valores.
 
 \begin{lstlisting}
 	z_centre  = gcentre( z , grid_span , grid_size ) ;
@@ -346,33 +327,10 @@ Si lo hacemos as\'{i}, obtenemos el siguiente c\'{odigo}:
 				_mm_store_ss(&distance, v1);
 \end{lstlisting}
 
-
-\subsection{Ayuda}
-
-Peque\~{n}a ayuda (mirar optimizaciones.tex para ver el c\'{o}digo):
-
-Como poner una lista de elementos:
-\begin{itemize}
-   \item Elemento 1
-   \item Elemento 2
-\end{itemize}
-
 Como poner una figura:
 \begin{figure}[ht]
    \centering
    \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/muestra}
 \end{figure}
-
-Como poner una tabla:
-\begin{center}
-   \begin{tabular}{| c || c | c | c |}
-      \hline
-      	           & Load	& Store		& Total		\\ \hline \hline
-	Accesses   & 105353	& 21423		& 126776	\\ \hline
-	Hits       &  11644	&  1837		&  13481	\\ \hline
-	Misses     &  93709 	& 19586		& 113295	\\ \hline
-	Miss rate  & 88.95\%	& 91.43\%	& 89.37\%	\\ \hline
-   \end{tabular}
-\end{center}
 
 % vim: filetype=tex tw=75

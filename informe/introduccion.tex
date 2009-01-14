@@ -1,26 +1,28 @@
 \section{Introducci\'{o}n}
 
-Para realizar los profiles del programa hemos utilizado la herramienta gprof.
-Hemos escogido esta porque, aunque los resultados pueden diferir, nos da los
-valores absolutos en la aplicaci\'{o}n ejecutada y no en el sistema. Para
-ejecutar profile hemos a\~{n}adido los flags \texttt{-g} \texttt{-p} en la compilaci\'{o}n. Una vez
-modificado el c\'{o}digo, ejecutabamos gprof y guardabamos los valores obtenidos. 
+Este informe analiza y explica las optimizaciones que se han llevado a cabo en
+el programa FTDock.
 
-Hemos utilizado los scripts principalmente para preparar el entorno de
-pruevas, y para cambiar de una optimizaci\'{o}n a otra. No hemos utilizado scripts
-para comprobar las diferencias de rendimiento entre ejecuciones, ya que hicios
-que se printase por salida de error, el elapsed time de cada ejecuci\'{o}n.
-Teniendo esto, solo nos era necesario ejecutar y comparar el tiempo entre ejecuciones.
+El trabajo realizado consiste en aplicar optimizaciones sobre el c\'{o}digo
+base, analizando en cada paso cual es la parte de la aplicaci\'{o}n que se va a
+mejorar y como se puede puede conseguir la mejora.
 
-Para comprobar que un fichero de salida era correcto, hemos utilizado la
-herramienta md5sum. 
+Adem\'{a}s de optimizar el c\'{o}digo del FTDock se han generado una serie de
+scripts para hacer m\'{a}s f\'{a}cil el proceso de instalaci\'{o}n de la
+aplicaci\'{o}n, la compilaci\'{o}n de las diversas versiones del c\'{o}digo y
+la ejecuci\'{o}n de las pruebas. Junto a este informe se ha hecho entrega de
+estos scripts, todos los archivos necesarios para probar las optimizaciones y
+un archivo de ayuda que explica como utilizar los scripts.
 
-Nos hemos dedicado a optimizar las funciones, empezando por la que consume m\'{a}s
-tiempo y acabando en la que menos.
+Este documento se estructura de la siguiente forma: en la secci\'{o}n de
+metolog\'{i}a se explican los pasos que se han seguido durante el proceso de
+optimizaci\'{o}n del c\'{o}digo, as\'{i} como las herramientas utilizadas. En
+la secci\'{o}n de optimizaciones se explican las optimizaciones realizadas,
+justificando las modificaciones y mostrando lo que se gana con ellas. El
+documento acaba con las conclusiones que se extraen de este trabajo.
 
-Hemos realizado la pr\'{a}ctica en los mismos ordenadores donde hac\'{i}amos los
-laboratorios. Los archivos de programa y de entrada, los guardaba antes de
-empezar el directorio tmp para evitar latencias debido al transporte de la
-red.
+N\'{o}tese que, por motivos de espacio, en la secci\'{o}n de optimizaciones no
+se ha adjuntado todo el c\'{o}digo de cada versi\'{o}n sin\'{o} las partes
+necesarias para explicar que se ha hecho.
 
 % vim: filetype=tex tw=75
