@@ -62,6 +62,13 @@ Esta optimizaci\'{o}n se ha aplicado de la misma forma en otros puntos, como en
 \texttt{electric\_field\_zero\_core} o en el primer bucle de
 \texttt{electric\_point\_charge}.
 
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt1-perf}
+\end{figure}
+
+Aceleracion inicial	100.2886%	100.1491%	100.2726%
+
 \subsection{Opt2: Filtrado de datos}
 
 Explicar tecnica.
@@ -88,6 +95,15 @@ beneficios que supone ahorrarse la evaluaci\'{o}n de la condici\'{o}n y las
 posibles penalizaciones
 por fallos del predictor de saltos, as\'{i} que la eleminaci\'{o}n no se ha
 llevado a cabo.
+
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt2-perf}
+\end{figure}
+
+
+Aceleracion orig	147.7424%	149.8068%	157.5480%
+Acelaracion prev	147.3172%	149.5838%	157.1197%
 
 \subsection{Opt3: Evitar saltos}
 
@@ -166,6 +182,14 @@ Esta optimizaci\'{o}n se ha aplicado de la misma forma en otros puntos, como en
 \texttt{electric\_field\_zero\_core} o en el primer bucle de
 \texttt{electric\_point\_charge}.
 
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt3-perf}
+\end{figure}
+
+Aceleracion orig	148.0018%	149.9830%	157.6827%
+Acelaracion prev	100.1756%	100.1176%	100.0855%
+
 \subsection{Opt4: Evitar llamadas a sistema}
 
 Las llamadas a sistema son un tipo de instrucci\'{o}n especialmente costoso, ya
@@ -178,6 +202,14 @@ En cada iteraci\'{o}n del bucle m\'{a}s externo del cuerpo de
 la ejecuci\'{o}n se hagan \texttt{grid\_size} \texttt{printf}'s que escriben un
 solo punto, cuando lo \'{o}ptimo es hacer un solo \texttt{printf} que escriba
 \texttt{grid\_size} puntos.
+
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt4-perf}
+\end{figure}
+
+Aceleracion orig	148.3250%	149.8565%	157.8284%
+Acelaracion prev	100.2183%	99.9157%	100.0924%
 
 \subsection{Opt5: Unrolling}
 
@@ -214,10 +246,25 @@ se hace el unrolling. El c\'{o}digo resultante es el siguiente:
      }
 \end{lstlisting}
 
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt5-perf}
+\end{figure}
+
+Aceleracion orig	149.9423%	151.2134%	159.9456%
+Acelaracion prev	101.0904%	100.9055%	101.3415%
+
 \subsection{Opt6: Vectorizaci\'{o}n}
 
 Una vez el 
 
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt6-perf}
+\end{figure}
+
+Aceleracion orig	187.6288%	189.7217%	202.4245%
+Acelaracion prev	125.1340%	125.4662%	126.5583%
 
 \subsection{Opt7: Vectorizaci\'{o}n}
 
@@ -260,6 +307,14 @@ el registro vectorial. Estos dos motivos, junto con que para trabajar con
 vectores se necesita hacer un load hacia el registro vectorial y un store a
 memoria, hacen que empeore el rendimiento de la aplicaci\'{o}n.
 
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt7-perf}
+\end{figure}
+
+Aceleracion orig	158.1041%	159.2999%	170.4034%
+Acelaracion prev	84.2643%	83.9650%	84.1812%
+
 \subsection{Opt8: Vectorizaci\'{o}n con SSE3}
 
 Para intentar solventar el problema del coste que tiene hacer un load y un store
@@ -288,6 +343,14 @@ sumas y la intr\'{i}nseca \texttt{\_mm\_sqrt\_ss} calcula la raiz cuadrada de la
 suma anterior de forma muy eficiente. Esto, a\~{n}adido al hecho de tener que
 recuperar solo un valor del registro vectorial, hace que el tiempo de
 ejecuci\'{o}n mejore.
+
+\begin{figure}[ht]
+   \centering
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt8-perf}
+\end{figure}
+
+Aceleracion orig	191.2556%	193.7223%	215.7306%
+Acelaracion prev	120.9681%	121.6086%	126.6000%
 
 \subsection{Opt9: Inlining}
 
@@ -327,10 +390,12 @@ hacer cargas el registro vectorial solo cuando se modifica uno de estos valores.
 				_mm_store_ss(&distance, v1);
 \end{lstlisting}
 
-Como poner una figura:
 \begin{figure}[ht]
    \centering
-   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/muestra}
+   \includegraphics[keepaspectratio=true,width=.6\textwidth]{figures/opt9-perf}
 \end{figure}
+
+Aceleracion orig	266.7937%	271.4096%	332.8822%
+Acelaracion prev	139.4959%	140.1024%	154.3046%
 
 % vim: filetype=tex tw=75
