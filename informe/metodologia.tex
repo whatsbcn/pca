@@ -13,6 +13,14 @@ Utilizando la herramienta \texttt{gprof} se han identificado las partes del
 c\'{o}digo original que consumen la mayor\'{i}a del tiempo de ejecuci\'{o}n.
 La salida proporcionada por dicha herramienta es la siguiente:
 
+\begin{lstlisting}[]
+    %   cumulative     self                 self     total
+ time      seconds  seconds       calls   s/call    s/call  name
+48.62        23.60    23.60           1    23.60     40.08  electric_field
+33.99        40.10    16.50  1300937139     0.00      0.00  pythagoras
+ 2.16        41.15     1.05                                 fftw_hc2hc_forward_generic
+\end{lstlisting}
+
 
 Los resultados dejan claros los dos objetivos de las optimizaciones: la
 funci\'{o}n \texttt{electric\_field} y la funci\'{o}n \texttt{pythagoras}.
