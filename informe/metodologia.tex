@@ -1,0 +1,38 @@
+\section{Metodolog\'{i}a}
+
+La metodolog\'{i}a que se debe utilizar para llevar a cabo optimizaciones es un
+proceso iterativo que incluye los siguientes pasos en cada iteraci\'{o}n:
+
+\begin{itemize}
+\item Identificar la parte del c\'{o}digo que consume m\'{a}s tiempo
+\item Realizar una optimizaci\'{o}n
+\item Comprobar que la optimizaci\'{o}n mejora el rendimiento del programa
+\end{itemize}
+
+Utilizando la herramienta \texttt{gprof} se han identificado las partes del
+c\'{o}digo original que consumen la mayor\'{i}a del tiempo de ejecuci\'{o}n.
+La salida proporcionada por dicha herramienta es la siguiente:
+
+
+Los resultados dejan claros los dos objetivos de las optimizaciones: la
+funci\'{o}n \texttt{electric\_field} y la funci\'{o}n \texttt{pythagoras}.
+
+La gran diferencia en tiempo de ejecuci\'{o}n que existe entre estas dos
+funciones y todas las dem\'{a}s hace que el primer paso del proceso iterativo
+descrito anteriormente no tenga sentido, ya que es casi imposible que cualquier
+otra funci\'{o}n pase a dominar el tiempo de ejecuci\'{o}n de la aplicaci\'{o}n.
+En caso de que pase significa que la mejora sobre \texttt{electric\_field} y
+\texttt{pythagoras} es tan grande que el objetivo de optimizar FTDock est\'{a}
+m\'{a}s que cumplido.
+
+Se han utilizado scripts principalmente para preparar el entorno de pruebas y
+para pasar r\'{a}pidamente de una optimizaci\'{o}n a otra. No se han utilizado
+scripts para comprobar las diferencias de rendimiento entre ejecuciones. Para
+comprobar que las salidas de los diferentes versiones son correctas se ha
+utilizado la herramienta \texttt{md5sum}.
+
+El trabajo se ha realizado en los ordenadores del laboratorio de la asignatura,
+instalando la aplicaci\'{o}n en el directorio \texttt{/tmp} para evitar el uso
+del sistema de ficheros NFS.
+
+% vim: filetype=tex tw=75
