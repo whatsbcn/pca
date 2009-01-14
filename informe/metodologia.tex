@@ -17,13 +17,16 @@ La salida proporcionada por dicha herramienta es la siguiente:
 Los resultados dejan claros los dos objetivos de las optimizaciones: la
 funci\'{o}n \texttt{electric\_field} y la funci\'{o}n \texttt{pythagoras}.
 
-La gran diferencia en tiempo de ejecuci\'{o}n que existe entre estas dos
-funciones y todas las dem\'{a}s hace que el primer paso del proceso iterativo
-descrito anteriormente no tenga sentido, ya que es casi imposible que cualquier
-otra funci\'{o}n pase a dominar el tiempo de ejecuci\'{o}n de la aplicaci\'{o}n.
-En caso de que pase significa que la mejora sobre \texttt{electric\_field} y
-\texttt{pythagoras} es tan grande que el objetivo de optimizar FTDock est\'{a}
-m\'{a}s que cumplido.
+Para esta aplicaci\'{o}n en particular, la gran diferencia en tiempo de
+ejecuci\'{o}n que existe entre estas dos funciones y todas las dem\'{a}s hace
+que el primer paso del proceso iterativo descrito anteriormente d\'{e} siempre
+como objetivo de las optimizaciones las mismas funciones, ya que es casi
+imposible que cualquier otra funci\'{o}n pase a dominar el tiempo de
+ejecuci\'{o}n de la aplicaci\'{o}n. En caso de que pasara significar\'{i}a que
+la mejora sobre \texttt{electric\_field} y \texttt{pythagoras} es tan grande
+que el objetivo de optimizar FTDock est\'{a} m\'{a}s que cumplido. Por esta
+raz\'{o}n y por limitaciones de espacio no se mestra la salida de \texttt{gprof}
+de cada optimizaci\'{o}n.
 
 Se han utilizado scripts principalmente para preparar el entorno de pruebas y
 para pasar r\'{a}pidamente de una optimizaci\'{o}n a otra. No se han utilizado
@@ -31,8 +34,18 @@ scripts para comprobar las diferencias de rendimiento entre ejecuciones. Para
 comprobar que las salidas de los diferentes versiones son correctas se ha
 utilizado la herramienta \texttt{md5sum}.
 
+Para cada c\'{o}digo se han lanzado tres tests distintos. Los argumentos de
+dichos tests son, respectivamente:
+
+\begin{lstlisting}[]
+    ./ftdock -static 2pka.parsed -mobile 5pti.parsed
+    ./ftdock -static 1hba.parsed -mobile 5pti.parsed
+    ./ftdock -static 4hhb.parsed -mobile 5pti.parsed
+\end{lstlisting}
+
 El trabajo se ha realizado en los ordenadores del laboratorio de la asignatura,
-instalando la aplicaci\'{o}n en el directorio \texttt{/tmp} para evitar el uso
-del sistema de ficheros NFS.
+instalando la aplicaci\'{o}n en el directorio \texttt{/tmp} para evitar pasar
+por el sistema de ficheros NFS y as\'{i} no distorsionar los tiempos de
+ejecuci\'{o}n.
 
 % vim: filetype=tex tw=75
